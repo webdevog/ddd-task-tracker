@@ -34,19 +34,4 @@ class TaskRepository extends ServiceEntityRepository
             ->getResult()
         ;
     }
-
-    /**
-     * @param $value
-     * @return Task|null
-     * @throws \Doctrine\ORM\NonUniqueResultException
-     */
-    public function findOneById($value): ?Task
-    {
-        return $this->createQueryBuilder('t')
-            ->andWhere('t.id = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
-    }
 }

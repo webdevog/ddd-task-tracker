@@ -2,6 +2,11 @@
 
 namespace App\Entity;
 
+use App\Model\Event\TaskCreated;
+use App\Model\Event\TaskUpdated;
+use App\Model\Event\TaskRemoved;
+use App\Model\RaiseEventsInterface;
+use App\Model\RaiseEventsTrait;
 use App\Repository\TaskRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Ramsey\Uuid\Uuid;
@@ -10,9 +15,12 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ORM\Entity(repositoryClass=TaskRepository::class)
+ * @ORM\HasLifecycleCallbacks()
  */
-class Task
+class Task implements RaiseEventsInterface
 {
+    use RaiseEventsTrait;
+
     public const STATUS_NEW = 1;
     public const STATUS_COMPLETED = 2;
 
@@ -43,8 +51,12 @@ class Task
 
     public function __construct()
     {
+        // Generate ID before the event
         $this->id = Uuid::uuid4();
         $this->status = self::STATUS_NEW;
+        $this->createdAt = new \DateTimeImmutable();
+
+        $this->raise(new TaskCreated($this));
     }
 
     public function getId(): ?string
@@ -86,5 +98,21 @@ class Task
         $this->status = $status;
 
         return $this;
+    }
+
+    /**
+     * @ORM\PostUpdate
+     */
+    public function onUpdate()
+    {
+        $this->raise(new TaskUpdated($this));
+    }
+
+    /**
+     * @ORM\PreRemove
+     */
+    public function onRemove()
+    {
+        $this->raise(new TaskRemoved($this));
     }
 }
