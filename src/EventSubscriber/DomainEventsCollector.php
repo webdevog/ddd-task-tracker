@@ -92,7 +92,7 @@ class DomainEventsCollector implements EventSubscriber
 
         // Support case when listeners emitted some new events!
         if ($this->events) {
-            $this->dispatchCollectedEvents();
+            $this->postFlush($args);
         }
     }
 
